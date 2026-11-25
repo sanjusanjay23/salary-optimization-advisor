@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Salary Optimization Advisor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="logo-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8h10M8 3l5 5-5 5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span>Salary Optimizer</span>
+    </div>
+    <span class="nav-badge">AI-powered · Live market data</span>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 5v3M8 10v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">
+      <span class="pulse-dot"></span>
+      Live salary data · AI-powered analysis
+    </div>
+    <h1 class="hero-title">
+      Know your worth.<br>
+      <span class="hero-accent">Negotiate with confidence.</span>
+    </h1>
+    <p class="hero-subtitle">
+      Enter your details and optionally upload your resume. Our AI searches live
+      salary databases and generates a personalized action plan to boost your income.
+    </p>
+  </div>
+
+  <!-- FORM -->
+  <form action="/analyze" method="POST" enctype="multipart/form-data" id="analyzeForm">
+
+    <!-- Role details card -->
+    <div class="card">
+      <h2 class="card-title">Your Role</h2>
+
+      <div class="form-grid">
+
+        <div class="form-group full-width">
+          <label for="job_title">Job Title <span class="required">*</span></label>
+          <input type="text" id="job_title" name="job_title"
+                 placeholder="e.g. Senior Software Engineer"
+                 required autocomplete="off"/>
+        </div>
+
+        <div class="form-group">
+          <label for="current_salary">Current Annual Salary (USD) <span class="required">*</span></label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">$</span>
+            <input type="text" id="current_salary" name="current_salary"
+                   placeholder="95,000" required autocomplete="off"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="location">Location <span class="required">*</span></label>
+          <input type="text" id="location" name="location"
+                 placeholder="e.g. Boston, MA or Remote" required autocomplete="off"/>
+        </div>
+
+        <div class="form-group">
+          <label for="years_exp">Years of Experience</label>
+          <input type="number" id="years_exp" name="years_exp"
+                 placeholder="e.g. 4" min="0" max="50"/>
+        </div>
+
+        <div class="form-group">
+          <label for="industry">Industry</label>
+          <input type="text" id="industry" name="industry"
+                 placeholder="e.g. Fintech, Healthcare, SaaS"/>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="education">Education Level</label>
+          <select id="education" name="education">
+            <option value="high_school">High school diploma</option>
+            <option value="associate">Associate degree</option>
+            <option value="bachelor" selected>Bachelor's degree</option>
+            <option value="master">Master's degree</option>
+            <option value="phd">PhD / Doctorate</option>
+            <option value="bootcamp">Bootcamp / Self-taught</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="skills">Key Skills</label>
+          <textarea id="skills" name="skills" rows="3"
+            placeholder="e.g. Python, PyTorch, SQL, AWS, React, system design..."></textarea>
+          <p class="hint">Comma-separated — the more detail you provide, the more accurate the analysis</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Resume upload card -->
+    <div class="card">
+      <div class="card-title-row">
+        <h2 class="card-title">Resume Upload</h2>
+        <span class="optional-badge">Optional but recommended</span>
+      </div>
+      <p class="card-subtitle">Upload your PDF resume for personalized skill gap analysis and tailored recommendations.</p>
+
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-inner" id="dropzoneInner">
+          <div class="dropzone-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                    stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p class="dropzone-text">Drop your resume here or <span class="dropzone-link">click to browse</span></p>
+          <p class="dropzone-hint">PDF only · Max 20MB</p>
+        </div>
+        <input type="file" id="resume" name="resume" accept=".pdf" class="file-input"/>
+      </div>
+
+      <div class="file-preview" id="filePreview" style="display:none;">
+        <div class="file-preview-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M12 2H5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V8l-5-6z" stroke="#1D9E75" stroke-width="1.4"/>
+            <path d="M12 2v6h5M7 11l2.5 2.5L14 9" stroke="#1D9E75" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="file-preview-info">
+          <p class="file-name" id="fileName"></p>
+          <p class="file-size" id="fileSize"></p>
+        </div>
+        <button type="button" class="file-remove" id="fileRemove">✕</button>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-row">
+      <p class="submit-hint">Analysis takes ~20–30 seconds</p>
+      <button type="submit" class="btn-primary" id="submitBtn">
+        Analyze My Salary
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8h10M8 3l5 5-5 5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+  </form>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-it-works">
+    <h3>How it works</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <strong>Resume Parsing</strong>
+          <p>PyPDF2 extracts your skills, experience, and keywords from your uploaded PDF.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <strong>Salary Research</strong>
+          <p>Official BLS wage percentiles are fetched first, with public H1B salary filings as a backup.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <strong>AI Analysis</strong>
+          <p>An open-weight LLM (gpt-oss-120b via Groq) combines everything into personalized recommendations, skill gaps, and an action plan.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay" style="display:none;">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <h3>Analyzing your profile...</h3>
+    <p id="loadingMsg">Parsing your resume with PyPDF2...</p>
+    <div class="loading-steps">
+      <div class="lstep" id="ls1">
+        <div class="lstep-dot active"></div>
+        <span>Parsing resume (PyPDF2)</span>
+      </div>
+      <div class="lstep" id="ls2">
+        <div class="lstep-dot"></div>
+        <span>Fetching salary data (BLS + H1B)</span>
+      </div>
+      <div class="lstep" id="ls3">
+        <div class="lstep-dot"></div>
+        <span>Running AI analysis (LLM)</span>
+      </div>
+      <div class="lstep" id="ls4">
+        <div class="lstep-dot"></div>
+        <span>Generating your report</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
